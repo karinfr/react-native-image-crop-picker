@@ -67,11 +67,14 @@
 - (ImageResult*) compressImage:(UIImage*)image
                    withOptions:(NSDictionary*)options {
     
+    NSString* format = [options valueForKey:@"format"];
+
     ImageResult *result = [[ImageResult alloc] init];
     result.width = @(image.size.width);
     result.height = @(image.size.height);
     result.image = image;
-    result.mime = @"image/jpeg";
+    
+    result.mime = [format  isEqual: @"heic"] ? @"image/heic" : @"image/jpeg";
     
     NSNumber *compressImageMaxWidth = [options valueForKey:@"compressImageMaxWidth"];
     NSNumber *compressImageMaxHeight = [options valueForKey:@"compressImageMaxHeight"];
@@ -96,8 +99,9 @@
         compressQuality = [NSNumber numberWithFloat:0.8];
     }
     
-    // convert image to jpeg representation
-    result.data = UIImageJPEGRepresentation(result.image, [compressQuality floatValue]);
+    
+    // convert image to heic / jpeg representation
+    result.data = [format  isEqual: @"heic"] ? tj_UIImageHEICRepresentation_picker(result.image, [compressQuality floatValue]) : UIImageJPEGRepresentation(result.image, [compressQuality floatValue]);
     
     return result;
 }

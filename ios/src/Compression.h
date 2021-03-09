@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <AVFoundation/AVFoundation.h>
+#import "UIImage+HEIC.h"
 
 @interface ImageResult : NSObject
 
