@@ -148,6 +148,7 @@ export default class App extends Component {
       cropperToolbarColor: 'white',
       cropperActiveWidgetColor: 'white',
       cropperToolbarWidgetColor: '#3498DB',
+      format: "heic"
     })
       .then((image) => {
         console.log('received image', image);
@@ -174,6 +175,7 @@ export default class App extends Component {
       sortOrder: 'desc',
       includeExif: true,
       forceJpg: true,
+      format: "heic"
     })
       .then((images) => {
         this.setState({

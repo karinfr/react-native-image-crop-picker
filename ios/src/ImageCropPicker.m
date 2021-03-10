@@ -70,6 +70,7 @@ RCT_EXPORT_MODULE();
             @"showsSelectedCount": @YES,
             @"forceJpg": @NO,
             @"sortOrder": @"none",
+            @"format": @"jpg",
             @"cropperCancelText": @"Cancel",
             @"cropperChooseText": @"Choose"
         };
@@ -582,6 +583,8 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
                                     
                                     Boolean forceJpg = [[self.options valueForKey:@"forceJpg"] boolValue];
                                     
+                                    NSString *format = [self.options objectForKey:@"format"];
+
                                     NSNumber *compressQuality = [self.options valueForKey:@"compressImageQuality"];
                                     Boolean isLossless = (compressQuality == nil || [compressQuality floatValue] >= 0.8);
                                     
@@ -608,8 +611,8 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
                                     
                                     NSString *filePath = @"";
                                     if([[self.options objectForKey:@"writeTempFile"] boolValue]) {
-                                        
-                                        filePath = [self persistFile:imageResult.data];
+                                        NSString* ext = [format isEqual:@"heic"] ? @".heic" : @".jpg";
+                                        filePath = [self persistFile:imageResult.data withExtension:ext];
                                         
                                         if (filePath == nil) {
                                             [indicatorView stopAnimating];
@@ -744,7 +747,7 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
         [self cropImage:[image fixOrientation]];
     } else {
         ImageResult *imageResult = [self.compression compressImage:[image fixOrientation]  withOptions:self.options];
-        NSString *filePath = [self persistFile:imageResult.data];
+        NSString *filePath = [self persistFile:imageResult.data withExtension:@".jpg"];
         if (filePath == nil) {
             [viewController dismissViewControllerAnimated:YES completion:[self waitAnimationEnd:^{
                 self.reject(ERROR_CANNOT_SAVE_IMAGE_KEY, ERROR_CANNOT_SAVE_IMAGE_MSG, nil);
@@ -807,7 +810,8 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
     UIImage *resizedImage = [croppedImage resizedImageToFitInSize:desiredImageSize scaleIfSmaller:YES];
     ImageResult *imageResult = [self.compression compressImage:resizedImage withOptions:self.options];
     
-    NSString *filePath = [self persistFile:imageResult.data];
+    NSString* ext = [[self.options objectForKey:@"format"] isEqual:@"heic"] ? @".heic" : @".jpg";
+    NSString *filePath = [self persistFile:imageResult.data withExtension:ext];
     if (filePath == nil) {
         [self dismissCropper:controller selectionDone:YES completion:[self waitAnimationEnd:^{
             self.reject(ERROR_CANNOT_SAVE_IMAGE_KEY, ERROR_CANNOT_SAVE_IMAGE_MSG, nil);
@@ -841,11 +845,12 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
 
 // at the moment it is not possible to upload image by reading PHAsset
 // we are saving image and saving it to the tmp location where we are allowed to access image later
-- (NSString*) persistFile:(NSData*)data {
+- (NSString*) persistFile:(NSData*)data withExtension: (NSString*)ext {
     // create temp file
     NSString *tmpDirFullPath = [self getTmpDirectory];
     NSString *filePath = [tmpDirFullPath stringByAppendingString:[[NSUUID UUID] UUIDString]];
-    filePath = [filePath stringByAppendingString:@".jpg"];
+    filePath = [filePath stringByAppendingString:ext];
+
     
     // save cropped file
     BOOL status = [data writeToFile:filePath atomically:YES];
